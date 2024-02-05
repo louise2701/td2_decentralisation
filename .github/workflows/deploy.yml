@@ -1,8 +1,40 @@
-uses: anantaramdas/ipfs-pinata-deploy-action@v1.6.4
-with:
-  pin-name: 'My personal site'
-  path: './build'
-  pinata-api-key: ${{ secrets.IPFS_PINATA_DEPLOY_ACTION_API_KEY }}
-  pinata-secret-api-key:  ${{ secrets.IPFS_PINATA_DEPLOY_ACTION_API_SECRET_KEY }}
-  verbose: true
-  remove-old: false
+name: IPFS Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set Up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14'
+
+      - name: Install IPFS
+        run: |
+          wget https://dist.ipfs.io/go-ipfs/v0.11.0/go-ipfs_v0.11.0_linux-amd64.tar.gz
+          tar -xvzf go-ipfs_v0.11.0_linux-amd64.tar.gz
+          sudo mv go-ipfs/ipfs /usr/local/bin/ipfs
+          ipfs init
+
+      - name: Add Files to IPFS
+        run: |
+          ipfs add -r .
+
+      - name: Deploy to IPFS
+        uses: anantaramdas/ipfs-pinata-deploy-action@v1.6.4
+        with:
+          pin-name: 'My personal site'
+          path: './build'
+          pinata-api-key: ${{ secrets.IPFS_PINATA_DEPLOY_ACTION_API_KEY }}
+          pinata-secret-api-key: ${{ secrets.IPFS_PINATA_DEPLOY_ACTION_API_SECRET_KEY }}
+          verbose: true
+          remove-old: false
